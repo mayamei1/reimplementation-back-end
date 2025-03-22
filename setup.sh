@@ -12,12 +12,14 @@ rm -f /app/tmp/pids/server.pid
 
 echo "Step 2: Bundling dependencies..."
 bundle install
+rake db:drop
   
 echo "Step 3: Creating the database..."
 rake db:create
  
 echo "Step 4: Running database migrations..."
-rake db:migrate
+rake db:migrate:up VERSION=20230305064753
+rake db:migrate VERSION=20250216020117
 
 echo "Step 5: Seeding the database..." 
 rake db:seed
