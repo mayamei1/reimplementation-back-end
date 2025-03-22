@@ -4,7 +4,7 @@ class Course < ApplicationRecord
   validates :name, presence: true
   validates :directory_path, presence: true
   has_many :ta_mappings, dependent: :destroy
-  has_many :tas, through: :ta_mappings, source: :ta
+  has_many :tas, through: :ta_mappings
 
   # Returns the submission directory for the course
   def path
@@ -17,8 +17,9 @@ class Course < ApplicationRecord
     if user.nil?
       return { success: false, message: "The user with id #{user.id} does not exist" }
     elsif TaMapping.exists?(user_id: user.id, course_id: id)
-      return { success: false, message: "The user with id #{user.id} is already a TA for this course." }
+      return { success: false, message: "The user #{user.name} is already a TA for this course." }
     else
+      puts("Adding new TA named ", user.name, " to the course!")
       ta_mapping = TaMapping.create(user_id: user.id, course_id: id)
       user.update(role: Role::TEACHING_ASSISTANT)
       if ta_mapping.save
@@ -30,11 +31,11 @@ class Course < ApplicationRecord
   end
 
   # Removes Teaching Assistant from the course
-  def remove_ta(user_id)
-    ta_mapping = ta_mappings.find_by(user_id: user_id, course_id: :id)
+  def remove_ta(ta_id)
+    ta_mapping = ta_mappings.find_by(ta_id: ta_id, course_id: :id)
     return { success: false, message: "No TA mapping found for the specified course and TA" } if ta_mapping.nil?
-    ta = User.find(ta_mapping.user_id)
-    ta_count = TaMapping.where(user_id: user_id).size - 1
+    ta = User.find(ta_mapping.ta_id)
+    ta_count = TaMapping.where(ta_id: ta_id).size - 1
     if ta_count.zero?
       ta.update(role: Role::STUDENT)
     end
